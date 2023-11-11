@@ -1,12 +1,22 @@
+#this is for the mini-jam on itch.io #145 'Frozen'
+#last edit for the night, re-adding my comments and cleaning some code up
+
+#load the pygame library
 import pygame
 import sys
 from pygame.locals import *
 
+#being with initializing the program
 pygame.init()
+
+#caption for gamejam game snowmania
+pygame.display.set_caption('Snowmania       Tristan Dombroski       itch.io  GAMEJAM #145 "Frozen"') #this sets a caption for the application itself
+
 
 # Screen setup
 screen_width, screen_height = 800, 650
 screen = pygame.display.set_mode((screen_width, screen_height))
+#captioning the window
 pygame.display.set_caption('Snowmania       Tristan Dombroski       itch.io  GAMEJAM #145 "Frozen"')
 
 # Menusplash setup
@@ -20,16 +30,15 @@ startbutton_rect = startbutton.get_rect(midleft=(250, 600))
 # Clock setup
 clock = pygame.time.Clock()
 
-# Player setup
+# Player setup including variables that will control the player during the game state. Did not want to make a class Player
 player = pygame.image.load('graphics/snowbob.png')
 player_rect = player.get_rect(bottomleft=(400, 600))
 player_y_speed = 0
 player_x_speed = 3
 gravity = .7
-is_jumping = False
+is_jumping = False #starting this variable off as false so I can execute a later action
 
-# Ground setup, creates a basic rectanlge 600 units/pixels wide and 50 tall
-#ground_rect = pygame.Rect(0, 600, screen_width, 50)
+
 
 #here I want to reattempt making a ground setup but using snowblock.png and then a for i in something set-up
 ground_surface = pygame.image.load('graphics/snowblock.png')
@@ -48,7 +57,7 @@ game_state = 'MENU'
 mouse_clicked = False
 mouse_pos = (0, 0)
 
-
+#the main game loop itself
 while game_running:
 
     for event in pygame.event.get():
@@ -60,16 +69,16 @@ while game_running:
             mouse_clicked = True
             mouse_pos = pygame.mouse.get_pos()
 
-    keys = pygame.key.get_pressed()
+    keys = pygame.key.get_pressed() #this variable set to the event key get pressed checks for any and all keys pressed on the keyboard during the runtime of this program
 
-    if game_state == 'MENU':
+    if game_state == 'MENU': #the menu will display options and buttons like sounds, or start game, or maybe highscore
 
-        if mouse_clicked and startbutton_rect.collidepoint(mouse_pos):
+        if mouse_clicked and startbutton_rect.collidepoint(mouse_pos): #allows the player to start the game
             game_state = 'GAME'
 
 
 
-    elif game_state == 'GAME':
+    elif game_state == 'GAME': #the game state will handle all the game logic like player movement, event keys, enemies, objects, and their respective code sections
 
 
         if keys[K_a]: #left
@@ -104,16 +113,16 @@ while game_running:
         # Apply gravity
         player_y_speed += gravity
 
-    screen.fill((135, 212, 221))
+    screen.fill((135, 212, 221)) #fills the screen with an arctic sky color
 
 
 
-    if game_state == 'MENU':
+    if game_state == 'MENU': #draws my menu
         screen.blit(menusplash, menusplash_rect)
         screen.blit(startbutton, startbutton_rect)
 
 
-    elif game_state == 'GAME':
+    elif game_state == 'GAME': #draws the game player, objects, enemies, and environment
         # Draw the ground surface in a loop
         for i in range(-5, (screen_width // ground_surface_rect.width) + 5):
             x_position = (i * ground_surface_rect.width) - scroll_x % ground_surface_rect.width
@@ -124,8 +133,8 @@ while game_running:
         #pygame.draw.rect(screen, (0, 255, 0), ground_rect)
 
 
-    elif game_state == 'GAMEOVER':
+    elif game_state == 'GAMEOVER': #this is if the player dies
         screen.fill((135, 212, 221))
 
-    pygame.display.update()
-    clock.tick(60)
+    pygame.display.update() #updates the screen during the game
+    clock.tick(60) #clocks the game to 60 frames per second
