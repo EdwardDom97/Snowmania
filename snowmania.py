@@ -16,8 +16,7 @@ pygame.display.set_caption('Snowmania       Tristan Dombroski       itch.io  GAM
 # Screen setup
 screen_width, screen_height = 800, 650
 screen = pygame.display.set_mode((screen_width, screen_height))
-#captioning the window
-pygame.display.set_caption('Snowmania       Tristan Dombroski       itch.io  GAMEJAM #145 "Frozen"')
+
 
 # Menusplash setup
 menusplash = pygame.image.load('graphics/snowmaniasplash.png')
