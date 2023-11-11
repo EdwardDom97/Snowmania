@@ -4,6 +4,8 @@
 #load the pygame library
 import pygame
 import sys
+import random
+import time
 from pygame.locals import *
 
 #being with initializing the program
@@ -36,14 +38,37 @@ menubutton_rect = menubutton.get_rect(midleft=(250, 200))
 clock = pygame.time.Clock()
 
 # Player setup including variables that will control the player during the game state. Did not want to make a class Player
+#player images
 player = pygame.image.load('graphics/snowbob.png')
 player_rect = player.get_rect(bottomleft=(400, 600))
+#player variables
+player_health = 100
+player_lives = 3
 player_y_speed = 0
 player_x_speed = 3
 gravity = .7
 is_jumping = False #starting this variable off as false so I can execute a later action
 
+#here I am going to load some images related to the player like a health bar and special power icons
+playerhealth_visual = pygame.image.load('graphics/snowbobhealthbar.png')
+playerhealth_visual_rect = playerhealth_visual.get_rect(topleft=(50,150))
 
+#here I am going to create a green-ish rectangle that will display ontop of playerhealth_visual_rect = playerhealth_visual.get_rect(topleft=(50,150)) equal to the player's health defined above
+current_healthbar_width = 187
+current_healthbar_height = 57
+current_healthbar_color = (15, 225, 87)
+current_healthbar_rect = pygame.Rect(playerhealth_visual_rect.x + 65, playerhealth_visual_rect.y + 5, current_healthbar_width, current_healthbar_height)
+
+
+#here I am going to introduce an enemy to the game for the player to avoid while walking. will appear from the right at random intervals, sometimes multiple enemies.
+enemy_image = pygame.image.load('graphics/badwolf.png')
+enemy_image_rect = enemy_image.get_rect(topleft=(screen_width - enemy_image.get_width(), 540))
+enemy_x_speed = 4
+enemy_y_speed = 0
+enemy_wolves = []
+
+# Initialize an enemy reset timer
+enemy_reset_timer = pygame.time.get_ticks()
 
 #here I want to reattempt making a ground setup but using snowblock.png and then a for i in something set-up
 ground_surface = pygame.image.load('graphics/snowblock.png')
@@ -66,6 +91,10 @@ menu_toggled = False
 #the main game loop itself
 while game_running:
 
+    #tracks time
+    current_time = pygame.time.get_ticks()
+
+
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
@@ -79,6 +108,7 @@ while game_running:
             if keys[K_ESCAPE]:
                 menu_toggled = not menu_toggled
 
+
     keys = pygame.key.get_pressed() #this variable set to the event key get pressed checks for any and all keys pressed on the keyboard during the runtime of this program
 
 
@@ -86,6 +116,7 @@ while game_running:
     if game_state == 'MENU': #the menu will display options and buttons like sounds, or start game, or maybe highscore
 
         menu_toggled = False #creating this variable and setting it to false so when the player returns to the menu and back to the game the menu button is not displayed.
+
 
         if mouse_clicked and startbutton_rect.collidepoint(mouse_pos): #allows the player to start the game
             game_state = 'GAME'
@@ -124,9 +155,28 @@ while game_running:
 
 
 
-
         #the code below handles player varible modifications and if statements while the above code checks for key events like movement and then the actions that follow like movement or interact.
+
+
+
+
+        # Update the enemy's position from right to left
+        enemy_image_rect.x -= enemy_x_speed
+
+        # Reset enemy position when it goes off the left side of the screen and includes a timer so the player is not hopping for dear life every three seconds
+        if enemy_image_rect.right <= -1000 and current_time - enemy_reset_timer > random.randint(8000, 12000):
+            enemy_image_rect.x = screen_width + 1000
+            enemy_image_rect.y = 540
+            enemy_reset_timer = current_time
             
+
+        # Check for collision with the player
+        if player_rect.colliderect(enemy_image_rect):
+            # Handle collision (e.g., decrease player health)
+            player_health -= 10  # Adjust the amount based on your game's balancing
+            if player_health <= 0:
+                game_state = 'GAMEOVER'
+
 
 
         # Update player's vertical position
@@ -143,7 +193,6 @@ while game_running:
     
 
 
-
     #the code above this comment handles the logical events like key presses and clicks, also checks for other conditionals like object/envrionmental collisions
     #the code below this comment handles displaying everything onto the screen during the proper game_states
 
@@ -158,10 +207,12 @@ while game_running:
 
 
     elif game_state == 'GAME': #draws the game player, objects, enemies, and environment
+
         # Draw the ground surface in a loop
         for i in range(-5, (screen_width // ground_surface_rect.width) + 5):
             x_position = (i * ground_surface_rect.width) - scroll_x % ground_surface_rect.width
             screen.blit(ground_surface, (x_position, ground_y))
+
 
 
         #going to see if I need to display the menu button here and a conditional loop to show it when escape is pressed.
@@ -169,7 +220,25 @@ while game_running:
             screen.blit(menubutton, menubutton_rect)
 
 
-        screen.blit(player, player_rect)
+        #here I am going to display/blit the player image onto the screen and then other related objects and needed visuals (enemies, objects, health, powers)
+
+
+        # Update the green health bar width based on the player's health
+        current_healthbar_rect.width = int((player_health / 100) * current_healthbar_width)
+
+
+        #healthbar
+        screen.blit(playerhealth_visual, playerhealth_visual_rect)
+        # Draw the green health bar on top of the base health bar
+        pygame.draw.rect(screen,  current_healthbar_color,  current_healthbar_rect)
+
+
+        #first enemy wolf
+        screen.blit(enemy_image, enemy_image_rect)
+
+
+        #player
+        screen.blit(player, player_rect) 
         #pygame.draw.rect(screen, (0, 255, 0), ground_rect)
 
 
