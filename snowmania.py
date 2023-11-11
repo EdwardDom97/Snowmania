@@ -26,6 +26,12 @@ menusplash_rect = menusplash.get_rect(topleft=(0, 0))
 startbutton = pygame.image.load('graphics/startbuttonimage.png')
 startbutton_rect = startbutton.get_rect(midleft=(250, 600))
 
+
+#setting up a menu button for the game state when the player presses escape it brings up the menu button. going to use a toggle feature similar to my crafting/help window in TribalSandbox
+menubutton = pygame.image.load('graphics/menubuttonimage.png')
+menubutton_rect = menubutton.get_rect(midleft=(250, 200))
+
+
 # Clock setup
 clock = pygame.time.Clock()
 
@@ -45,8 +51,7 @@ ground_surface_rect = ground_surface.get_rect()
 ground_y = screen_height - ground_surface_rect.height
 
 # Scrolling setup
-scroll_x = -50
-
+scroll_x = 0
 
 # Game state setup
 game_running = True
@@ -55,6 +60,8 @@ game_state = 'MENU'
 # Event handling setup
 mouse_clicked = False
 mouse_pos = (0, 0)
+menu_toggled = False
+
 
 #the main game loop itself
 while game_running:
@@ -68,17 +75,32 @@ while game_running:
             mouse_clicked = True
             mouse_pos = pygame.mouse.get_pos()
 
+        elif event.type == KEYUP:
+            if keys[K_ESCAPE]:
+                menu_toggled = not menu_toggled
+
     keys = pygame.key.get_pressed() #this variable set to the event key get pressed checks for any and all keys pressed on the keyboard during the runtime of this program
 
+
+
     if game_state == 'MENU': #the menu will display options and buttons like sounds, or start game, or maybe highscore
+
+        menu_toggled = False #creating this variable and setting it to false so when the player returns to the menu and back to the game the menu button is not displayed.
 
         if mouse_clicked and startbutton_rect.collidepoint(mouse_pos): #allows the player to start the game
             game_state = 'GAME'
 
 
 
+
     elif game_state == 'GAME': #the game state will handle all the game logic like player movement, event keys, enemies, objects, and their respective code sections
 
+        
+
+        if mouse_clicked and menubutton_rect.collidepoint(mouse_pos): #allows the player to start the game
+            game_state = 'MENU'
+
+        #this code sections handles player movement
 
         if keys[K_a]: #left
 
@@ -87,7 +109,6 @@ while game_running:
                 player_rect.left = 50  # Limit to the left edge
 
             #scroll_x -= 5
-
 
         if keys[K_d]: #right
 
@@ -101,6 +122,13 @@ while game_running:
             player_y_speed = -15
             is_jumping = True
 
+
+
+
+        #the code below handles player varible modifications and if statements while the above code checks for key events like movement and then the actions that follow like movement or interact.
+            
+
+
         # Update player's vertical position
         player_rect.y += player_y_speed
 
@@ -112,8 +140,16 @@ while game_running:
         # Apply gravity
         player_y_speed += gravity
 
-    screen.fill((135, 212, 221)) #fills the screen with an arctic sky color
+    
 
+
+
+    #the code above this comment handles the logical events like key presses and clicks, also checks for other conditionals like object/envrionmental collisions
+    #the code below this comment handles displaying everything onto the screen during the proper game_states
+
+
+
+    screen.fill((135, 212, 221)) #fills the screen with an arctic sky color
 
 
     if game_state == 'MENU': #draws my menu
@@ -126,6 +162,11 @@ while game_running:
         for i in range(-5, (screen_width // ground_surface_rect.width) + 5):
             x_position = (i * ground_surface_rect.width) - scroll_x % ground_surface_rect.width
             screen.blit(ground_surface, (x_position, ground_y))
+
+
+        #going to see if I need to display the menu button here and a conditional loop to show it when escape is pressed.
+        if menu_toggled:
+            screen.blit(menubutton, menubutton_rect)
 
 
         screen.blit(player, player_rect)
