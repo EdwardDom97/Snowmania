@@ -1,159 +1,131 @@
-#this is for the mini-jam on itch.io #145 'Frozen'
-
-#start by loading in my modules/libraries/stuff
 import pygame
 import sys
 from pygame.locals import *
 
-
-#this pygame.init basically initiallizes pygame
-
 pygame.init()
 
-#caption for gamejam game snowmania
-pygame.display.set_caption('Snowmania       Tristan Dombroski       itch.io  GAMEJAM #145 "Frozen"') #this sets a caption for the application itself
-
-
-#this is going to be my screen or window variable
-screen_width, screen_height = 800, 650 #basic screen
+# Screen setup
+screen_width, screen_height = 800, 650
 screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption('Snowmania       Tristan Dombroski       itch.io  GAMEJAM #145 "Frozen"')
 
-#clock variable to keep frames or time going in the game
-clock = pygame.time.Clock()
-
-#menusplash
-#menubackground color is hexcode 87d4dd or rgb (135, 212, 221) and I like it
+# Menusplash setup
 menusplash = pygame.image.load('graphics/snowmaniasplash.png')
 menusplash_rect = menusplash.get_rect(topleft=(0, 0))
 
-#start button to click and start the game, or swap to a game state
+# Start button setup
 startbutton = pygame.image.load('graphics/startbuttonimage.png')
 startbutton_rect = startbutton.get_rect(midleft=(250, 600))
 
+# Clock setup
+clock = pygame.time.Clock()
 
-#ground
-#here I am going to load my environment images like the topblock (snowblock.png) and the underlying tiles/blocks (dirtblock.png) in a row/column fashion
-topground = pygame.image.load('graphics/snowblock.png')
-num_tiles = screen_width // topground.get_width()
-
-
-#below loading my player I am going to create additional variables for the player regarding the game state
 # Player setup
 player = pygame.image.load('graphics/snowbob.png')
-player_rect = player.get_rect(topleft=(400, 400))
+player_rect = player.get_rect(bottomleft=(400, 600))
 player_y_speed = 0
-gravity = 0.8
+player_x_speed = 3
+gravity = .7
 is_jumping = False
 
-#variable to make game run or not run and setting the starting value to menu 
+# Ground setup, creates a basic rectanlge 600 units/pixels wide and 50 tall
+#ground_rect = pygame.Rect(0, 600, screen_width, 50)
+
+#here I want to reattempt making a ground setup but using snowblock.png and then a for i in something set-up
+ground_surface = pygame.image.load('graphics/snowblock.png')
+ground_surface_rect = ground_surface.get_rect()
+ground_y = screen_height - ground_surface_rect.height
+
+# Scrolling setup
+scroll_x = -50
+
+
+# Game state setup
 game_running = True
 game_state = 'MENU'
 
-#certain variables to handle logic below like mouseclicks.
+# Event handling setup
 mouse_clicked = False
 mouse_pos = (0, 0)
 
-#attempting to create three separate states to have a menu screen, and active game state, and a game over state.
-game_menu = 'MENU'
 
-game_active = 'GAME'
-
-game_over = 'GAMEOVER'
-
-
-#here I am creating a class called define events 
-def handle_events():
-    global mouse_clicked, mouse_pos, game_state, player_y_speed, player_x_speed
+while game_running:
 
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
+
         elif event.type == MOUSEBUTTONDOWN:
             mouse_clicked = True
             mouse_pos = pygame.mouse.get_pos()
 
-            if startbutton_rect.collidepoint(mouse_pos):
-                game_state = 'GAME'
-   
-
     keys = pygame.key.get_pressed()
 
-
-    if keys[K_a]:
-        player_rect.x -= 5
-    if keys[K_d]:
-        player_rect.x += 5
-        keys = pygame.key.get_pressed()
-
-    if keys[K_w]and not is_jumping:
-        player_y_speed = -15
-        is_jumping = True
-        
-
-    player_rect.y += player_y_speed
-
-
-def draw_menu():
-    screen.blit(menusplash, menusplash_rect)
-    screen.blit(startbutton, startbutton_rect)
-
-
-
-
-
-
-def draw_game():
-    global player_y_speed, player_x_speed, is_jumping
-
-    screen.fill((135, 212, 221))
-
-    # Create a new rect for the player's position
-    
-    for i in range(num_tiles + 1):
-        topground_rect = pygame.Rect(i * topground.get_width(), screen_height - topground.get_height(), topground.get_width(), topground.get_height())
-        screen.blit(topground, topground_rect)
-
-
-    if player_rect.colliderect(topground_rect):
-        is_jumping = False
-        player_rect.y = topground_rect.y - player_rect.height
-
-
-    # Draw player
-    screen.blit(player, player_rect)
-
-    pygame.display.update()
-
-
-
-
-
-def draw_game_over():
-    screen.fill((135, 212, 221))
-
-
-
-
-
-
-while game_running:
-
-    handle_events()
-
-
     if game_state == 'MENU':
-        draw_menu()
+
+        if mouse_clicked and startbutton_rect.collidepoint(mouse_pos):
+            game_state = 'GAME'
+
 
 
     elif game_state == 'GAME':
-        draw_game()
+
+
+        if keys[K_a]: #left
+
+            player_rect.x -= player_x_speed
+            if player_rect.left < 50:
+                player_rect.left = 50  # Limit to the left edge
+
+            #scroll_x -= 5
+
+
+        if keys[K_d]: #right
+
+            player_rect.x += player_x_speed
+            if player_rect.right > screen_width - 150:
+                player_rect.right = screen_width - 150  # Limit to the right edge
+
+            scroll_x += 4
+
+        if keys[K_w] and not is_jumping:
+            player_y_speed = -15
+            is_jumping = True
+
+        # Update player's vertical position
+        player_rect.y += player_y_speed
+
+        # Check for collision with the ground
+        if player_rect.bottom >= ground_y:
+            is_jumping = False
+            player_rect.y = ground_y - player_rect.height
+
+        # Apply gravity
+        player_y_speed += gravity
+
+    screen.fill((135, 212, 221))
+
+
+
+    if game_state == 'MENU':
+        screen.blit(menusplash, menusplash_rect)
+        screen.blit(startbutton, startbutton_rect)
+
+
+    elif game_state == 'GAME':
+        # Draw the ground surface in a loop
+        for i in range(-5, (screen_width // ground_surface_rect.width) + 5):
+            x_position = (i * ground_surface_rect.width) - scroll_x % ground_surface_rect.width
+            screen.blit(ground_surface, (x_position, ground_y))
+
+
+        screen.blit(player, player_rect)
+        #pygame.draw.rect(screen, (0, 255, 0), ground_rect)
 
 
     elif game_state == 'GAMEOVER':
-        draw_game_over()
-
+        screen.fill((135, 212, 221))
 
     pygame.display.update()
-
     clock.tick(60)

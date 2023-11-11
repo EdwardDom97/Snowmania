@@ -27,7 +27,7 @@ player_y_speed = 0
 gravity = 0.8
 is_jumping = False
 
-# Ground setup
+# Ground setup, creates a basic rectanlge 600 units/pixels wide and 50 tall
 ground_rect = pygame.Rect(0, 600, screen_width, 50)
 
 # Game state setup
@@ -43,6 +43,7 @@ while game_running:
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
+
         elif event.type == MOUSEBUTTONDOWN:
             mouse_clicked = True
             mouse_pos = pygame.mouse.get_pos()
@@ -50,13 +51,20 @@ while game_running:
     keys = pygame.key.get_pressed()
 
     if game_state == 'MENU':
+
         if mouse_clicked and startbutton_rect.collidepoint(mouse_pos):
             game_state = 'GAME'
+
+
     elif game_state == 'GAME':
+
+
         if keys[K_LEFT]:
             player_rect.x -= 5
+
         if keys[K_RIGHT]:
             player_rect.x += 5
+
         if keys[K_SPACE] and not is_jumping:
             player_y_speed = -15
             is_jumping = True
@@ -74,6 +82,8 @@ while game_running:
     if game_state == 'MENU':
         screen.blit(menusplash, menusplash_rect)
         screen.blit(startbutton, startbutton_rect)
+
+
     elif game_state == 'GAME':
         screen.blit(player, player_rect)
         pygame.draw.rect(screen, (0, 255, 0), ground_rect)
