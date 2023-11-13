@@ -364,10 +364,10 @@ while game_running:
         
         #end of player movement logic and condtions
         
-
+        
         #snowcode
         #here I am going to try my snow logic
-        if random.randint(0, 100) < 4:  # Adjust the probability of generating a snowflake
+        if random.randint(0, 100) < 3:  # Adjust the probability of generating a snowflake
             snowflake_rect = snowflake_image.get_rect()
             snowflake_rect.x = random.randint(0, screen_width)
             snowflake_rect.y = 0
@@ -388,7 +388,7 @@ while game_running:
                 player_score += 1 
 
                 if player_health <= 100:
-                    player_health += 4 #was originally 1 but after playing a few times I decided 4 extends the playtime
+                    player_health += 2
                     snowflakes.remove(snowflake_rect)
 
 
@@ -396,12 +396,12 @@ while game_running:
         #wolf collision with the player
         for wolf in enemy_wolves:
             if player_rect.colliderect(wolf['rect']):
-                player_health -= 5  # Decrease player health upon collision with a wolf by 5 was originally ten
+                player_health -= 10  # Decrease player health upon collision with a wolf
                 enemy_wolves.remove(wolf)
 
         for bear in enemy_bears:
             if player_rect.colliderect(bear['rect']):
-                player_health -= 8  # Decrease player health upon collision with a bear by 8 was originally 16
+                player_health -= 15  # Decrease player health upon collision with a bear
                 enemy_bears.remove(bear)
 
         if player_health <= 0:
@@ -415,7 +415,7 @@ while game_running:
         for fireball_rect, direction in fireballs.copy():
             for wolf in enemy_wolves.copy():
                 if wolf['rect'].colliderect(fireball_rect):
-                    wolf['health'] -= 2  # Decrease wolf health upon collision with a fireball
+                    wolf['health'] -= 1  # Decrease wolf health upon collision with a fireball
                     
                     if wolf['health'] <= 0:
                         player_score += 3
@@ -425,7 +425,7 @@ while game_running:
                                 
             for bear in enemy_bears.copy():
                 if bear['rect'].colliderect(fireball_rect):
-                    bear['health'] -= 2  # Decrease bear health upon collision with a fireball
+                    bear['health'] -= 1  # Decrease bear health upon collision with a fireball
                     if bear['health'] <= 0:
                         player_score += 5
                         enemy_bears.remove(bear)  # Remove the bear if its health is depleted
@@ -434,6 +434,14 @@ while game_running:
 
         #end of enemy collision with fireball code (logic)
 
+
+
+
+
+
+
+
+        
 
 
 
@@ -461,8 +469,11 @@ while game_running:
         #    endgoal_rect.bottomleft = (WORLD_WIDTH - scroll_background_x + 460, 590)
 
 
+        
+
 
         #END OF ACTIVE GAME LOOP LOGIC
+
 
 
 
@@ -490,6 +501,7 @@ while game_running:
         
 
         
+
 
         #END OF THE GAME OVER LOOP LOGIC
     
