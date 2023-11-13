@@ -26,12 +26,11 @@ menusplash_rect = menusplash.get_rect(center=(screen_width // 2, screen_height /
 
 # Start button setup
 startbutton = pygame.image.load('graphics/startbuttonimage.png')
-startbutton_rect = startbutton.get_rect(midleft=(screen_width // 2, screen_height // 2))
-
+startbutton_rect = startbutton.get_rect(center=(screen_width // 2, screen_height // 2 + 200 ))
 
 #setting up a menu button for the game state when the player presses escape it brings up the menu button. going to use a toggle feature similar to my crafting/help window in TribalSandbox
 menubutton = pygame.image.load('graphics/menubuttonimage.png')
-menubutton_rect = menubutton.get_rect(midleft=(250, 300))
+menubutton_rect = menubutton.get_rect(center=(screen_width // 2, screen_height // 2))
 
 
 # Clock setup
@@ -53,7 +52,7 @@ player = pygame.image.load('graphics/snowbob.png')
 player_rect = player.get_rect(bottomleft=(400, 600))
 
 #player variables
-player_score = 0
+player_score = 0  #player starting score
 player_health = 100
 player_lives = 3
 player_y_speed = 0
@@ -61,6 +60,9 @@ player_x_speed = 3
 gravity = .7
 distance_travelled = 0 #this will be used as a marker to the end of the game
 is_jumping = False #starting this variable off as false so I can execute a later action
+
+high_score = 0 #will use to make a top score
+max_distance_travelled = 0
 
 
 # Player starting position
@@ -93,7 +95,7 @@ fireball_rect = None
 
 # Additional variable for firing cooldown
 can_fire = True
-fireball_damage = 1
+fireball_damage = 3
 fireball_speed = 4
 fireballs = []
 
@@ -107,15 +109,11 @@ snowflake_speed = random.choice(range(1, 3)) #this allows for faster and slower 
 #here I am going to introduce an enemy to the game for the player to avoid while walking. will appear from the right at random intervals, sometimes multiple enemies.
 enemy_wolf = pygame.image.load('graphics/badwolf.png')
 wolf_x_speed = 3
-#wolf_y_speed = 0
-#wolf_health = 3
 enemy_wolves = []
 
 #BEAR ENEMY
 enemy_bear = pygame.image.load('graphics/snowbear.png')
 bear_x_speed = 2
-#bear_y_speed = 0
-#bear_health = 3
 enemy_bears = []
 
 
@@ -124,14 +122,11 @@ reset_timer = pygame.time.get_ticks()
 
 #images to display during the game over screen
 
-
-
 #GROUND
 #here I want to reattempt making a ground setup but using snowblock.png and then a for i in something set-up
 ground_surface = pygame.image.load('graphics/snowblock.png')
 ground_surface_rect = ground_surface.get_rect()
 ground_y = screen_height - ground_surface_rect.height
-
 
 
 #GROUND OBJECT
@@ -144,9 +139,11 @@ stationary_objects = [
 stationary_objects_rects = []
 
 num_objects = 1  # Adjust the number of objects as needed
-spawn_on_every = random.choice([1, 2])  # Randomly choose the spawn frequency
+spawn_on_every = 1  #spawns a tree on every ground image. ideally, could make ground image bigger.
+
 
 current_x = 0
+
 
 for i in range(num_objects):
     if i % spawn_on_every == 0:
@@ -161,14 +158,13 @@ for i in range(num_objects):
 #STATIONARY OBJECT LOGIC END
 
 
-
 #if the player died
 gameover_image = pygame.image.load('graphics/gameover.png')
-gameover_image_rect = gameover_image.get_rect(topleft=(0, 0))
+gameover_image_rect = gameover_image.get_rect(center=(screen_width // 2, screen_height // 2))
 
-#if the player collided with the end goal
+#if the player wins but the endgoal was removed for time of completion of game jam
 game_completed_image = pygame.image.load('graphics/gamecompleted.png')
-game_completed_image_rect = game_completed_image.get_rect(topleft=(0, 0))
+game_completed_image_rect = game_completed_image.get_rect(center=(screen_width // 2, screen_height // 2))
 
 #variable to control what screen displays during the end game state
 game_completed = False
@@ -219,6 +215,16 @@ while game_running:
 
     if game_state == 'MENU': #the menu will display options and buttons like sounds, or start game, or maybe highscore
 
+        # Read high score and max distance traveled from a file
+        try:
+            with open('highscore.txt', 'r') as file:
+                data = file.readline().split(',')
+                high_score = int(data[0])
+                max_distance_travelled = int(data[1])
+        except FileNotFoundError:
+            # Handle the case where the file doesn't exist
+            pass
+
         #clearing the fireball list inside of the menu so when a new game is started from previously dying, no fireballs remain on screen, or snowflakes, wolves, bears, you name it.
         fireballs.clear()
         snowflakes.clear()
@@ -252,8 +258,9 @@ while game_running:
     elif game_state == 'GAME': #the game state will handle all the game logic like player movement, event keys, enemies, objects, and their respective code sections
 
         
-        if mouse_clicked and menubutton_rect.collidepoint(mouse_pos): #allows the player to start the game
-            game_state = 'MENU'
+        if mouse_clicked and menubutton_rect.collidepoint(mouse_pos): #allows the player to return to the menu
+            if menu_toggled:
+                game_state = 'MENU'
 
 
         #handles the creation of wolf enemies onscreen for the player to defeat/avoid
@@ -272,7 +279,7 @@ while game_running:
         #handles the creation of bear enemies onscreen for the player to defeat/avoid
         if random.randint(0, 400) < 0.7:
             new_enemy_bear_rect = enemy_bear.get_rect(topleft=(screen_width, ground_y - enemy_bear.get_height()))
-            enemy_bears.append({'rect': new_enemy_bear_rect, 'speed': 1, 'health': 3})
+            enemy_bears.append({'rect': new_enemy_bear_rect, 'speed': 1, 'health': 4})
 
         # Update position of existing enemies
         for bear in enemy_bears:
@@ -317,7 +324,7 @@ while game_running:
         if keys[K_SPACE] and can_fire: #this section handles the event spacebar being pressed and contains the necessary elements for a basic shooting function with math. (aims for mouse_pos)
          
 
-            player_health -= 10  #this damages the player for using fireballs as a snowman... a pretty inconvienient super power i'd say
+            player_health -= 10 #this damages the player for using fireballs as a snowman... a pretty inconvienient sup
 
             current_time = pygame.time.get_ticks()
 
@@ -364,10 +371,9 @@ while game_running:
         
         #end of player movement logic and condtions
         
-        
         #snowcode
         #here I am going to try my snow logic
-        if random.randint(0, 100) < 3:  # Adjust the probability of generating a snowflake
+        if random.randint(0, 100) < 8:  # Adjust the probability of generating a snowflake
             snowflake_rect = snowflake_image.get_rect()
             snowflake_rect.x = random.randint(0, screen_width)
             snowflake_rect.y = 0
@@ -396,13 +402,14 @@ while game_running:
         #wolf collision with the player
         for wolf in enemy_wolves:
             if player_rect.colliderect(wolf['rect']):
-                player_health -= 10  # Decrease player health upon collision with a wolf
+                player_health -= 5  # Decrease player health upon collision with a wolf
                 enemy_wolves.remove(wolf)
 
         for bear in enemy_bears:
             if player_rect.colliderect(bear['rect']):
-                player_health -= 15  # Decrease player health upon collision with a bear
+                player_health -= 8   # Decrease player health upon collision with a bear
                 enemy_bears.remove(bear)
+
 
         if player_health <= 0:
             distance_travelled = 0
@@ -415,7 +422,7 @@ while game_running:
         for fireball_rect, direction in fireballs.copy():
             for wolf in enemy_wolves.copy():
                 if wolf['rect'].colliderect(fireball_rect):
-                    wolf['health'] -= 1  # Decrease wolf health upon collision with a fireball
+                    wolf['health'] -= fireball_damage  # Decrease wolf health upon collision with a fireball
                     
                     if wolf['health'] <= 0:
                         player_score += 3
@@ -425,7 +432,7 @@ while game_running:
                                 
             for bear in enemy_bears.copy():
                 if bear['rect'].colliderect(fireball_rect):
-                    bear['health'] -= 1  # Decrease bear health upon collision with a fireball
+                    bear['health'] -= fireball_damage  # Decrease bear health upon collision with a fireball
                     if bear['health'] <= 0:
                         player_score += 5
                         enemy_bears.remove(bear)  # Remove the bear if its health is depleted
@@ -434,14 +441,6 @@ while game_running:
 
         #end of enemy collision with fireball code (logic)
 
-
-
-
-
-
-
-
-        
 
 
 
@@ -469,7 +468,12 @@ while game_running:
         #    endgoal_rect.bottomleft = (WORLD_WIDTH - scroll_background_x + 460, 590)
 
 
-        
+        if player_score > high_score:
+            high_score = player_score
+
+
+        if distance_travelled > max_distance_travelled:
+            max_distance_travelled = distance_travelled
 
 
         #END OF ACTIVE GAME LOOP LOGIC
@@ -482,6 +486,9 @@ while game_running:
 
     elif game_state == 'GAMEOVER':
 
+        with open('highscore.txt', 'w') as file:
+            file.write(f"{high_score},{max_distance_travelled}")
+
 
         #including some variables right here to make the game reset better like distance travelled and player health
         #resetting the enemy position
@@ -491,6 +498,15 @@ while game_running:
         player_rect = player.get_rect(bottomleft=(400, 600))
         #resetting the distance travelled
         distance_travelled = 0
+
+        if player_score > high_score:
+            high_score = player_score
+
+        if distance_travelled > max_distance_travelled:
+            max_distance_travelled = distance_travelled
+
+
+        
 
 
         if mouse_clicked and menubutton_rect.collidepoint(mouse_pos): #allows the player to start the game
@@ -532,6 +548,12 @@ while game_running:
     if game_state == 'MENU': #draws my menu
         screen.blit(menusplash, menusplash_rect)
         screen.blit(startbutton, startbutton_rect)
+
+        high_score_text = game_font.render("High Score: {}".format(high_score), True, (255, 255, 255))
+        screen.blit(high_score_text, (10, 50))
+
+        max_distance_text = game_font.render("Max Distance: {}".format(max_distance_travelled), True, (255, 255, 255))
+        screen.blit(max_distance_text, (10, 90))
 
 
     #END OF THE MENU RENDERING
@@ -636,6 +658,16 @@ while game_running:
         screen.fill((135, 212, 221))
         screen.blit(gameover_image, gameover_image_rect)
         screen.blit(menubutton, menubutton_rect)
+
+        score_text = game_font.render("Score: {}".format(player_score), True, (255, 255, 255))
+        screen.blit(score_text, (10, 10))
+
+        high_score_text = game_font.render("High Score: {}".format(high_score), True, (255, 255, 255))
+        screen.blit(high_score_text, (10, 50))
+
+        max_distance_text = game_font.render("Max Distance: {}".format(max_distance_travelled), True, (255, 255, 255))
+        screen.blit(max_distance_text, (10, 90))
+
 
 
         #if the game was completed will display a different screen, 'you win' screen
