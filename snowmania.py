@@ -11,10 +11,27 @@ from pygame.locals import *
 
 #being with initializing the program
 pygame.init()
+pygame.mixer.init()
 
 #caption for gamejam game snowmania
 pygame.display.set_caption('Snowmania       Tristan Dombroski       itch.io  GAMEJAM #145 "Frozen"') #this sets a caption for the application itself
 
+
+#going to set up music before sounds since there is only a few sounds and a lot of images
+menu_music = pygame.mixer.Sound('sounds/menuloop.wav')
+game_music = pygame.mixer.Sound('sounds/gameloop01.wav')
+menu_volume = 0.5
+
+# Load the bear growl and wolf sounds
+bear_growl_sound = pygame.mixer.Sound('sounds/beargrowl.wav')
+wolf_growl_sound = pygame.mixer.Sound('sounds/wolfgrowl.wav')
+
+# Load the jump and casting fireball sounds
+jump_sound = pygame.mixer.Sound('sounds/jumpsound.wav')
+firewhoosh_sound = pygame.mixer.Sound('sounds/firewhoosh.wav')
+
+#healthupsound might not use
+player_heal_sound = pygame.mixer.Sound('sounds/healthup.wav')
 
 # Screen setup
 screen_width, screen_height = 1200, 650
@@ -223,6 +240,16 @@ while game_running:
 
     if game_state == 'MENU': #the menu will display options and buttons like sounds, or start game, or maybe highscore
 
+
+        #loading in music for my menu state
+        
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.load('sounds/menuloop.wav')
+            pygame.mixer.music.set_volume(menu_volume)  # Set the volume for the menu music
+
+            pygame.mixer.music.play(-1)  # The -1 parameter makes the music loop indefinitely
+
+
         # Read high score and max distance traveled from a file
         try:
             with open('highscore.txt', 'r') as file:
@@ -260,6 +287,10 @@ while game_running:
 
             screen.blit(tutinfodisplay, tutinfodisplay_rect)
 
+        if game_state != 'MENU' and pygame.mixer.music.get_busy():
+            pygame.mixer.music.stop()
+        
+
     #END OF MENU LOOP LOGIC
 
 
@@ -275,6 +306,12 @@ while game_running:
                     file.write(f"{high_score},{max_distance_travelled}")
 
                 game_state = 'MENU'
+
+
+        #game music
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.load('sounds/gameloop01.wav')
+            pygame.mixer.music.play(-1)  # The -1 parameter makes the music loop indefinitely
 
 
         #handles the creation of wolf enemies onscreen for the player to defeat/avoid
@@ -331,12 +368,14 @@ while game_running:
         if keys[K_w] and not is_jumping:
             player_y_speed = -15
             is_jumping = True
+            #jump_sound.play()
         
 
         #shooting logic
         if keys[K_SPACE] and can_fire: #this section handles the event spacebar being pressed and contains the necessary elements for a basic shooting function with math. (aims for mouse_pos)
          
-
+            #the firewhoosh sound
+            firewhoosh_sound.play()
             player_health -= 10 #this damages the player for using fireballs as a snowman... a pretty inconvienient sup
 
             current_time = pygame.time.get_ticks()
@@ -409,6 +448,7 @@ while game_running:
                 if player_health <= 100:
                     player_health += 2
                     snowflakes.remove(snowflake_rect)
+                    #player_heal_sound.play() i dont liek that either
 
 
         #this section is for the wolf enemy and bear enemy collision with the player
@@ -440,6 +480,7 @@ while game_running:
                     if wolf['health'] <= 0:
                         player_score += 3
                         enemy_wolves.remove(wolf)  # Remove the wolf if its health is depleted
+                        wolf_growl_sound.play()
 
                     fireballs.remove((fireball_rect, direction))  # Remove the fireball upon collision
                                 
@@ -449,6 +490,9 @@ while game_running:
                     if bear['health'] <= 0:
                         player_score += 5
                         enemy_bears.remove(bear)  # Remove the bear if its health is depleted
+                        bear_growl_sound.play()
+
+
                     fireballs.remove((fireball_rect, direction))  # Remove the fireball upon collision
 
 
@@ -488,6 +532,11 @@ while game_running:
         if distance_travelled > max_distance_travelled:
             max_distance_travelled = distance_travelled
 
+
+
+        #check to see if state is no longer in game for music
+        if game_state != 'GAME' and pygame.mixer.music.get_busy():
+            pygame.mixer.music.stop()
 
         #END OF ACTIVE GAME LOOP LOGIC
 
@@ -529,16 +578,10 @@ while game_running:
 
         
 
-        
-
-
         #END OF THE GAME OVER LOOP LOGIC
     
 
-
-
     #the code above this comment handles the logical events like key presses and clicks, also checks for other conditionals like object/envrionmental collisions
-
 
 
 
@@ -546,9 +589,7 @@ while game_running:
 
 
 
-
     #the code below this comment handles displaying everything onto the screen during the proper game_states
-
 
 
 
