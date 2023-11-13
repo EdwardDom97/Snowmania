@@ -17,16 +17,17 @@ pygame.display.set_caption('Snowmania       Tristan Dombroski       itch.io  GAM
 
 
 # Screen setup
-screen_width, screen_height = 1200, 650
+screen_width, screen_height = 800, 650
 screen = pygame.display.set_mode((screen_width, screen_height))
+
 
 # Menusplash setup
 menusplash = pygame.image.load('graphics/snowmaniasplash.png')
-menusplash_rect = menusplash.get_rect(center=(screen_width // 2, screen_height // 2))
+menusplash_rect = menusplash.get_rect(topleft=(0, 0))
 
 # Start button setup
 startbutton = pygame.image.load('graphics/startbuttonimage.png')
-startbutton_rect = startbutton.get_rect(midleft=(screen_width // 2, screen_height // 2))
+startbutton_rect = startbutton.get_rect(midleft=(250, 600))
 
 
 #setting up a menu button for the game state when the player presses escape it brings up the menu button. going to use a toggle feature similar to my crafting/help window in TribalSandbox
@@ -37,6 +38,7 @@ menubutton_rect = menubutton.get_rect(midleft=(250, 300))
 # Clock setup
 clock = pygame.time.Clock()
 
+
 #before loading the player, environment, enemies, and objects, I am going to make my world variables
 #going to try to make a maximum world size so it's a little easier making presents and the end goal spawn in the environment 
 WORLD_WIDTH = 1000
@@ -46,6 +48,7 @@ scroll_background_x = 5
 scroll_speed = 5
 
 #start player variables code 
+
 
 # Player setup including variables that will control the player during the game state. Did not want to make a class Player
 #player images
@@ -105,17 +108,17 @@ snowflake_speed = random.choice(range(1, 3)) #this allows for faster and slower 
 
 #WOLF ENEMY
 #here I am going to introduce an enemy to the game for the player to avoid while walking. will appear from the right at random intervals, sometimes multiple enemies.
-enemy_wolf = pygame.image.load('graphics/badwolf.png')
-wolf_x_speed = 3
-#wolf_y_speed = 0
-#wolf_health = 3
+enemy_image = pygame.image.load('graphics/badwolf.png')
+enemy_x_speed = 3
+enemy_y_speed = 0
+enemy_health = 2
 enemy_wolves = []
 
 #BEAR ENEMY
-enemy_bear = pygame.image.load('graphics/snowbear.png')
-bear_x_speed = 2
-#bear_y_speed = 0
-#bear_health = 3
+enemy_bear_image = pygame.image.load('graphics/snowbear.png')
+enemy_x_speed = 2
+enemy_y_speed = 0
+enemy_health = 3
 enemy_bears = []
 
 
@@ -125,13 +128,11 @@ reset_timer = pygame.time.get_ticks()
 #images to display during the game over screen
 
 
-
 #GROUND
 #here I want to reattempt making a ground setup but using snowblock.png and then a for i in something set-up
 ground_surface = pygame.image.load('graphics/snowblock.png')
 ground_surface_rect = ground_surface.get_rect()
 ground_y = screen_height - ground_surface_rect.height
-
 
 
 #GROUND OBJECT
@@ -219,10 +220,9 @@ while game_running:
 
     if game_state == 'MENU': #the menu will display options and buttons like sounds, or start game, or maybe highscore
 
-        #clearing the fireball list inside of the menu so when a new game is started from previously dying, no fireballs remain on screen, or snowflakes, wolves, bears, you name it.
+        #clearing the fireball list inside of the menu so when a new game is started from previously dying, no fireballs remain on screen
         fireballs.clear()
         snowflakes.clear()
-        enemy_bears.clear()
         enemy_wolves.clear()
 
         #resetting the distance travelled, player score and health.
@@ -256,10 +256,11 @@ while game_running:
             game_state = 'MENU'
 
 
+        #start of wolf creation logic
         #handles the creation of wolf enemies onscreen for the player to defeat/avoid
         if random.randint(0, 400) < 0.8:
-            new_enemy_wolf_rect = enemy_wolf.get_rect(topleft=(screen_width, ground_y - enemy_wolf.get_height()))
-            enemy_wolves.append({'rect': new_enemy_wolf_rect, 'speed': 3, 'health': 1})
+            new_enemy_rect = enemy_image.get_rect(topleft=(screen_width, ground_y - enemy_image.get_height()))
+            enemy_wolves.append({'rect': new_enemy_rect, 'speed': 3, 'health': 1})
 
         # Update position of existing enemies
         for wolf in enemy_wolves:
@@ -267,18 +268,19 @@ while game_running:
 
         #end of wolf creation logic
 
-
         #start of bear creation logic
-        #handles the creation of bear enemies onscreen for the player to defeat/avoid
-        if random.randint(0, 400) < 0.7:
-            new_enemy_bear_rect = enemy_bear.get_rect(topleft=(screen_width, ground_y - enemy_bear.get_height()))
-            enemy_bears.append({'rect': new_enemy_bear_rect, 'speed': 1, 'health': 3})
+        #handles the creation of wolf enemies onscreen for the player to defeat/avoid
+        if random.randint(0, 400) < 0.8:
+            bear_enemy_rect = enemy_bear_image.get_rect(topleft=(screen_width, ground_y - enemy_bear_image.get_height()))
+            enemy_bears.append({'rect': bear_enemy_rect, 'speed': 2, 'health': 3})
 
         # Update position of existing enemies
         for bear in enemy_bears:
             bear['rect'].x -= bear['speed']
 
         #end of bear creation logic
+
+
 
 
         #this code sections handles player movement
@@ -307,7 +309,6 @@ while game_running:
             scroll_background_x += 3
             distance_travelled += 1
 
-
         if keys[K_w] and not is_jumping:
             player_y_speed = -15
             is_jumping = True
@@ -315,9 +316,10 @@ while game_running:
 
         #shooting logic
         if keys[K_SPACE] and can_fire: #this section handles the event spacebar being pressed and contains the necessary elements for a basic shooting function with math. (aims for mouse_pos)
-         
 
-            player_health -= 10  #this damages the player for using fireballs as a snowman... a pretty inconvienient super power i'd say
+            #fireballs = []
+
+            player_health -= 15
 
             current_time = pygame.time.get_ticks()
 
@@ -364,10 +366,9 @@ while game_running:
         
         #end of player movement logic and condtions
         
-
         #snowcode
         #here I am going to try my snow logic
-        if random.randint(0, 100) < 4:  # Adjust the probability of generating a snowflake
+        if random.randint(0, 100) < 3:  # Adjust the probability of generating a snowflake
             snowflake_rect = snowflake_image.get_rect()
             snowflake_rect.x = random.randint(0, screen_width)
             snowflake_rect.y = 0
@@ -388,34 +389,30 @@ while game_running:
                 player_score += 1 
 
                 if player_health <= 100:
-                    player_health += 4 #was originally 1 but after playing a few times I decided 4 extends the playtime
+                    player_health += 2
                     snowflakes.remove(snowflake_rect)
 
+        #end update for snowflake code
 
-        #this section is for the wolf enemy and bear enemy collision with the player
+
+        #this section is purely for the wolf enemy
         #wolf collision with the player
         for wolf in enemy_wolves:
             if player_rect.colliderect(wolf['rect']):
-                player_health -= 5  # Decrease player health upon collision with a wolf by 5 was originally ten
+                player_health -= 10  # Decrease player health upon collision with a wolf
                 enemy_wolves.remove(wolf)
 
-        for bear in enemy_bears:
-            if player_rect.colliderect(bear['rect']):
-                player_health -= 8  # Decrease player health upon collision with a bear by 8 was originally 16
-                enemy_bears.remove(bear)
+            if player_health <= 0:
+                distance_travelled = 0
+                player_health = 100
+                game_completed = False
+                game_state = 'GAMEOVER'
 
-        if player_health <= 0:
-            distance_travelled = 0
-            player_health = 100
-            game_completed = False
-            game_state = 'GAMEOVER'
-
-
-        #enemy collision with fireballs
+        #wolf collision with fireballs
         for fireball_rect, direction in fireballs.copy():
             for wolf in enemy_wolves.copy():
                 if wolf['rect'].colliderect(fireball_rect):
-                    wolf['health'] -= 2  # Decrease wolf health upon collision with a fireball
+                    wolf['health'] -= 1  # Decrease wolf health upon collision with a fireball
                     
                     if wolf['health'] <= 0:
                         player_score += 3
@@ -423,17 +420,8 @@ while game_running:
 
                     fireballs.remove((fireball_rect, direction))  # Remove the fireball upon collision
                                 
-            for bear in enemy_bears.copy():
-                if bear['rect'].colliderect(fireball_rect):
-                    bear['health'] -= 2  # Decrease bear health upon collision with a fireball
-                    if bear['health'] <= 0:
-                        player_score += 5
-                        enemy_bears.remove(bear)  # Remove the bear if its health is depleted
-                    fireballs.remove((fireball_rect, direction))  # Remove the fireball upon collision
 
-
-        #end of enemy collision with fireball code (logic)
-
+        #end of wolf code logic
 
 
 
@@ -461,8 +449,11 @@ while game_running:
         #    endgoal_rect.bottomleft = (WORLD_WIDTH - scroll_background_x + 460, 590)
 
 
+        
+
 
         #END OF ACTIVE GAME LOOP LOGIC
+
 
 
 
@@ -490,6 +481,7 @@ while game_running:
         
 
         
+
 
         #END OF THE GAME OVER LOOP LOGIC
     
@@ -566,23 +558,19 @@ while game_running:
         score_text = game_font.render("Score: {}".format(player_score), True, (255, 255, 255))
         screen.blit(score_text, (10, 50))  # Adjust the position as needed
 
-
     
         #healthbar Draw the green health bar on top of the base health bar
         screen.blit(playerhealth_visual, playerhealth_visual_rect)
         pygame.draw.rect(screen,  current_healthbar_color,  current_healthbar_rect)
 
 
-
-
         #first enemy wolf
         for wolf in enemy_wolves:
-            screen.blit(enemy_wolf, wolf['rect'].topleft)
-
+            screen.blit(enemy_image, wolf['rect'].topleft)
 
         #second enemy bear
         for bear in enemy_bears:
-            screen.blit(enemy_bear, bear['rect'].topleft)
+            screen.blit(enemy_bear_image, bear['rect'].topleft)
 
 
         #player
