@@ -32,6 +32,14 @@ startbutton_rect = startbutton.get_rect(center=(screen_width // 2, screen_height
 menubutton = pygame.image.load('graphics/menubuttonimage.png')
 menubutton_rect = menubutton.get_rect(center=(screen_width // 2, screen_height // 2))
 
+#tutorial button
+tutbutton = pygame.image.load('graphics/howtoplay.png')
+tutbutton_rect = tutbutton.get_rect(center=(screen_width // 2, screen_height // 2))
+#information window
+tutinfodisplay = pygame.image.load('graphics/tutorialpanel.png')
+tutinfodisplay_rect = tutinfodisplay.get_rect(center=(screen_width // 2, screen_height // 2))
+
+
 
 # Clock setup
 clock = pygame.time.Clock()
@@ -247,10 +255,12 @@ while game_running:
 
             game_state = 'GAME'
 
+        if mouse_clicked and tutbutton_rect.collidepoint(mouse_pos): #allows the player to start the game
+            #endgoal_rect = endgoal_image.get_rect(bottomleft=(-600,-600)) #this ensures that during the menu state and in betwen game sessions, the endgoal_rect is placed far off screen
+
+            screen.blit(tutinfodisplay, tutinfodisplay_rect)
+
     #END OF MENU LOOP LOGIC
-
-
-
 
 
     #START OF ACTIVE GAME LOOP LOGIC
@@ -260,6 +270,10 @@ while game_running:
         
         if mouse_clicked and menubutton_rect.collidepoint(mouse_pos): #allows the player to return to the menu
             if menu_toggled:
+
+                with open('highscore.txt', 'w') as file:
+                    file.write(f"{high_score},{max_distance_travelled}")
+
                 game_state = 'MENU'
 
 
@@ -287,7 +301,6 @@ while game_running:
 
         #end of bear creation logic
 
-
         #this code sections handles player movement
 
         if keys[K_a]: #left
@@ -303,7 +316,7 @@ while game_running:
                 player_rect.left = 50  
 
 
-          
+        
         if keys[K_d]: #right
 
             player_rect.x += player_x_speed
@@ -548,12 +561,19 @@ while game_running:
     if game_state == 'MENU': #draws my menu
         screen.blit(menusplash, menusplash_rect)
         screen.blit(startbutton, startbutton_rect)
+        screen.blit(tutbutton,tutbutton_rect)
 
         high_score_text = game_font.render("High Score: {}".format(high_score), True, (255, 255, 255))
         screen.blit(high_score_text, (10, 50))
 
         max_distance_text = game_font.render("Max Distance: {}".format(max_distance_travelled), True, (255, 255, 255))
         screen.blit(max_distance_text, (10, 90))
+
+
+        if mouse_clicked and tutbutton_rect.collidepoint(mouse_pos): #allows the player to start the game
+            #endgoal_rect = endgoal_image.get_rect(bottomleft=(-600,-600)) #this ensures that during the menu state and in betwen game sessions, the endgoal_rect is placed far off screen
+
+            screen.blit(tutinfodisplay, tutinfodisplay_rect)
 
 
     #END OF THE MENU RENDERING
